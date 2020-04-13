@@ -2,13 +2,6 @@ const express = require("express");
 const db = require("../models");
 const router = express.Router();
 
-const tasksList = [
-  {
-    id: 0,
-    task: "Test",
-    isCompleted: true,
-  },
-];
 
 // Create
 router.post("/", (req, res) => {
@@ -40,8 +33,14 @@ router.get("/", (req, res) => {
 
 router.get("/:id", (req, res) => {
   const targetId = Number(req.params.id);
-  const targetTask = tasksList.find((task) => task.id === targetId);
-  res.status(200).send(targetTask);
+  db.task
+    .findOne({ where: { id: targetId } })
+    .then((result) => {
+      res.status(200).send(result);
+    })
+    .catch((err) => {
+      res.status(400).send(err);
+    });
 });
 
 // Update
@@ -50,22 +49,33 @@ router.put("/:id", (req, res) => {
   const updatedIsCompleted = Boolean(Number(req.body.isCompleted));
   const targetId = Number(req.params.id);
 
-  const targetIndex = tasksList.findIndex((task) => task.id === targetId);
-
-  tasksList[targetIndex] = {
-    id: targetId,
-    task: updatedTask ? updatedTask : tasksList[targetIndex].task,
-    isCompleted: updatedIsCompleted,
-  };
-  res.status(204).send();
+  db.task
+    .update(
+      {
+        task: updatedTask,
+        isCompleted: updatedIsCompleted,
+      },
+      { where: { id: targetId } }
+    )
+    .then((result) => {
+      res.status(200).send(result);
+    })
+    .catch((err) => {
+      res.status(400).send(err);
+    });
 });
 
 // DELETE
 router.delete("/:id", (req, res) => {
   const targetId = Number(req.params.id);
-  const targetIndex = tasksList.findIndex((task) => task.id === targetId);
-  tasksList.splice(targetIndex, 1);
-  res.status(204).send();
+  db.task
+    .destroy({ where: { id: targetId } })
+    .then((result) => {
+      res.status(204).send();
+    })
+    .catch((err) => {
+      res.status(400).send(err);
+    });
 });
 
 module.exports = router;

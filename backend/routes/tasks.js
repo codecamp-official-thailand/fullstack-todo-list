@@ -1,5 +1,5 @@
 const express = require("express");
-const _ = require("lodash");
+const db = require("../models");
 const router = express.Router();
 
 const tasksList = [
@@ -13,18 +13,29 @@ const tasksList = [
 // Create
 router.post("/", (req, res) => {
   const task = req.body.task;
-  const newTask = {
-    id: Number(_.uniqueId()),
-    isCompleted: false,
-    task,
-  };
-  tasksList.push(newTask);
-  res.status(201).send(newTask);
+  db.task
+    .create({
+      isCompleted: false,
+      task,
+    })
+    .then((result) => {
+      res.status(201).send(result);
+    })
+    .catch((err) => {
+      res.status(400).send(err);
+    });
 });
 
 // Read
 router.get("/", (req, res) => {
-  res.status(200).send(tasksList);
+  db.task
+    .findAll()
+    .then((result) => {
+      res.status(200).send(result);
+    })
+    .catch((err) => {
+      res.status(400).send(err);
+    });
 });
 
 router.get("/:id", (req, res) => {
